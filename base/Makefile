@@ -22,6 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ############################## PROJECT VARIABLES ##############################
+MAKEFLAGS +=-rR
 ### SUPPORTED SUFFIXES
 HEADERSUFFIXES :=h hpp
 ### DIRECTORIES
@@ -37,6 +38,7 @@ MAINFILES :=$(SRCDIR)/main.cpp
 # Binaries corresponding to each file with a main() function
 BINARIES  :=$(BINDIR)/execute_me
 # Compiler & linker flags
+CXX      :=g++
 CXXFLAGS :=-std=c++17 -Wall
 LDFLAGS  :=
 LDLIBS   :=
@@ -161,11 +163,11 @@ $(OBJDIR)/$(TSTDIR)/%.o: INCLUDE +=$(TINCLUDE)
 
 ################################ CLEAN RULES ##################################
 clean:
-	$(SILENT) $(RM) -r $(OBJDIR)
-	$(SILENT) $(RM) -r $(BINDIR)
+	$(SILENT) rm -r $(OBJDIR)
+	$(SILENT) rm -r $(BINDIR)
 
 distclean: clean
-	$(SILENT) $(RM) -r $(DEPDIR)
+	$(SILENT) rm -r $(DEPDIR)
 
 ################################ PREREQUISITES ################################
 # Do not include list of dependencies with clean rules
