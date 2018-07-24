@@ -96,12 +96,14 @@ define makedeps
 	$(eval $3_EDGES:=$(abspath $(filter $(HEADERPATTERNS),$(shell cat $1))))
 	$(eval $3_EDGES:=$(patsubst $(abspath $(INCDIR))%,$(SRCDIR)%,$($3_EDGES)))
 	$(eval $3_EDGES:=$(patsubst %,$(OBJDIR)/%.o,$(basename $($3_EDGES))))
+	$(eval HPPSONLY:=$(filter-out $(OBJECTS),$($3_EDGES)))
 	$(eval $3_EDGES:=$(filter $($3_EDGES),$(OBJECTS)))
 	$(eval $3_EDGES:=$(filter-out $(TARGET_OBJ),$($3_EDGES)))
 	$(eval STEMLIST:=$(patsubst $(OBJDIR)/%.o,%,$($3_EDGES)))
+	$(eval HPPSONLY:=$(patsubst $(OBJDIR)/%.o,%,$(HPPSONLY)))
 	$(eval $3_EDGES:=$(patsubst $(OBJDIR)/%.o,%_EDGES,$($3_EDGES)))
 	$(eval NDEPS+=$1)
-	$(file >> $1,-$1: | $(patsubst %,$(DEPDIR)/%.d,$(STEMLIST)))
+	$(file >> $1,$1: $(patsubst %,%.cpp,$(STEMLIST) $(HPPSONLY)))
 	$(file >> $1,$3_EDGES =$$(eval $3_EDGES:=$(TARGET_OBJ)\
 	 $($3_EDGES))$$($3_EDGES))
 	$(file >> $1,$3_OBJS =$$(eval RET:=)$$(eval $3_OBJS:=$$(call\
@@ -163,11 +165,11 @@ $(OBJDIR)/$(TSTDIR)/%.o: INCLUDE +=$(TINCLUDE)
 
 ################################ CLEAN RULES ##################################
 clean:
-	$(SILENT) rm -r $(OBJDIR)
-	$(SILENT) rm -r $(BINDIR)
+	$(SILENT) rm -rf $(OBJDIR)
+	$(SILENT) rm -rf $(BINDIR)
 
 distclean: clean
-	$(SILENT) rm -r $(DEPDIR)
+	$(SILENT) rm -rf $(DEPDIR)
 
 ################################ PREREQUISITES ################################
 # Do not include list of dependencies with clean rules
