@@ -1,46 +1,71 @@
-# MaGEfile - the official MaGES build system
-MaGEfile is a generic, non-recursive makefile designed for C++ projects. Its main goal is to provide a build system which requires a minimum amount of manual configuration, using automatic detection of dependencies and probing all necessary objects to link each executable specified by the user. A further goal is to create a well-defined structure to include new functionalities within the makefile, without directly editing its base file. The core ideas and source of inspiration come mostly from [this](http://aegis.sourceforge.net/auug97.pdf) insightful paper.
+# Magefile - (mostly) automatic makefile template
+Magefile is a generic, non-recursive makefile template designed for C++ projects. Its main goal is to provide a template that is easy to use and requires the minimum amount of manual configuration. It was born from my despise of having to manually list source files to compile a program. IMHO this should be an option of the compiler, even more so after the introduction of modules, but dreams can only be dreams.
 
-## How to use
-The functionalities of this makefile will be devided in Configuration, Building and Diagnosis. Currently, there is no support to diagnosis and configuration only addresses which variables you should consider to change manually. Support to diagnosis and more complex, automated configuration is expected to be added some time in the future.
+What Magefile supports:
+* Minimal initial configuration to get things going.
+* Almost no manual listing of source files (most of them are automatically discovered).
+* Multiple targets within the same project.
+* Three types of targets: binaries/programs, libraries, and tests.
+* Target-specific flags.
+* Compilation modes (to define different sets of flags, e.g. debug, testing, etc).
+* Parallel compilation.
+* Header dependencies tracking.
+* More features can be built on top of it according to one's needs.
 
-### Configuration
-All variables of interest to the user are placed inside a section named __PROJECT VARIABLES__, quite visible. I may change this extravagant style later, but for now it is what it is. Most of the variables are straight-forward. The meaning of each one is listed bellow:
-* __HEADER_SUFFIXES__: the suffixes that are accepted in header filenames. It affects the automatic detection of necessary object files, so make sure you don't forget to add any unorthodox suffix you may come to use. SOURCE_SUFFIXES will be added in later development, for now it only supports .cpp files (unless you search for all occurrencies and change them);
-* Variables terminated in __DIR__ specifies the directories of the project. At the moment, only one directory is supported for each variable, but with any depth of subdirectories;
-    * __SRCDIR__: the sources directory (i.e., where you placed your implementation files);
-    * __INCDIR__: the headers directory (i.e., where you placed your interface/definition files). If you prefer to organize your code in modules, each module correponding to a directory with both, headers and implementations, you can emulate this by setting SRCDIR and INCDIR to the same directory (project's root (.), for instance);
-    * __OBJDIR__: the objects directory (i.e., where the building rules places all generated objects for the project). Usually, you will not need to change this;
-    * __TSTDIR__: the tests directory (i.e., where you put your test files, if any - good practices, dude). __Notice__: you don't need to remove the default value if you're not going to actually use it;
-    * __DEPDIR__: the dependencies directory (i.e., where the building rules places all aditional rules to track dependencies). You only need to change this in case you already use a directory with same name;
-* __MAINFILES__: the files that contains the main entry to a program (i.e., the main function of C++). Through each of this files the makefile will know which objects it should link to create a program. This variable is intrinsically related to __BINARIES__;
-* __BINARIES__: for each file with a main function specified in __MAINFILES__, the makefile expects a corresponding binary in this variable. The relation is constructed based on the order of files, where the first file in __MAINFILES__ is related to the first binary in __BINARIES__, the second file with the second binary, and so on. __Notice__: you need to specify the relative path from the root of the project in both variables;
-* __CXXFLAGS__: flags to give to the C++ compiler;
-* __LDFLAGS__: "Extra flags to give to compilers when they are supposed to invoke the linker, ‘ld’, such as -L. Libraries (-lfoo) should be added to the LDLIBS variable instead" - [GNU Make Manual](https://www.gnu.org/software/make/manual/make.html);
-* __LDLIBS__: "Library flags or names given to compilers when they are supposed to invoke the linker, ‘ld’. LOADLIBES is a deprecated (but still supported) alternative to LDLIBS. Non-library linker flags, such as -L, should go in the LDFLAGS variable." - [GNU Make Manual](https://www.gnu.org/software/make/manual/make.html);
-* __INCLUDE__: the directories that should be added with -I flag. The __INCDIR__ is added by default;
-* __TMAINFILES__: see __MAINFILES__, applied to tests;
-* __TBINARIES__: see __BINARIES__, applied to tests;
-* __TCXXFLAGS__: see __CXXFLAGS__, applied to tests;
-* __TLDFLAGS__: see __LDFLAGS__, applied to tests;
-* __TLDLIBS__: see __LDLIBS__, applied to tests;
-* __TINCLUDE__: see __INCLUDE__, applied to tests;
-* __DEBUG__: if different of 0, removes all supressing of commands echoing;
+What Magefile doesn't support:
+* External dependency resolution (it will require a separate solution).
+* Projects non-compliant with a subset of the project layout conventions outlined by [Pitchfork](https://github.com/vector-of-bool/pitchfork).
+* C++20 Modules (I still have to play around to check if the same can be achieved for modules).
 
-All the flags and libs specific to tests are appended to the flags and libs of the project.
-
-### Building
-The basic goals supported so far by this makefile are listed bellow:
-* __all__: default goal. Compiles and links all binaries listed in __BINARIES__;
-* __tests__: compiles and links all binaries listed in __TBINARIES__;
-* __clean__: removes all generated objects and binaries;
-* __distclean__: executes __clean__ and removes all generated dependencies as well;
-
-Besides these goals, the makefile autogenerate goals with the name of each binary (from both, __BINARIES__ and __TBINARIES__). It is also possible to give a specific name of a file, which will result in the execution of any rule to create or update it (if necessary).
-
-### Diagnosis
-Not present in this Plane of Existence, __yet__.
+A minimal configuration is defined as:
+* A name for the target (be it a program, a library, or a test).
+* One or more sources from which the rest of required sources can be discovered (i.e. the file implementing the main function for a binary or the files implementing the public API for a library).
+* Compiler and flags.
 
 ## Requirements
-* updated version of GNU Make (tested with 4.2.1, probably works with any version above 3.80);
-* compiler with support to dependency-related flags (used to generate dependency files); GCC/g++ is recommended;
+About the environment:
+* Linux.
+* Bash version 4 or superior (although it is possible to adapt the rules to use POSIX compliant shells).
+* A modern version of GNU Make (GNU Make extensions are used, tested with 4.4.1).
+* A compiler capable of generating dependency files (-MM or -MMD flags).
+
+About the project layout:
+* Follow the [Pitchfork](https://github.com/vector-of-bool/pitchfork)'s layout conventions defined for src/include directories ('submodules' layout is currently unsupported).
+    * It works with either the Separate or the Merged Header Placements (i.e. if include/ is used or not).
+* Do not use spaces for file and directory names.
+
+## How to use
+Copy Makefile to your project and edit it directly, or rename it to something like magefile.mk and include it at the end of your Makefile.
+
+As a simple example, let's say we have a program called 'programA'. First, we need to define it in the `binaries` variable:
+```make
+binaries:=programA
+```
+Next, we need to provide the file with the main function:
+```make
+programA.sources:=src/programA/main.cpp
+```
+And define the compiler and required flags:
+```make
+CXX:=g++
+CXXFLAGS:=-Wall -std=c++17
+```
+With this you're pretty much good to go.
+
+If you're using Merged Test Placement for unit tests and auto-generated main with `gtest_main`, a very easy way to setup it is as follows:
+```make
+programA.tests=unit
+programA.unit.sources=$(call gettestsources,programA,$(srcdir))
+tests.LDLIBS=$(lDLIBS) $(shell pkg-config --libs gtest_main)
+tests.CXXFLAGS=$(CXXFLAGS) $(shell pkg-config --cflags gtest_main)
+```
+
+For more detailed information, check the Makefile itself and the `examples` folder.
+
+Magefile provides the following goals:
+* `all`: default goal, builds all binaries and libraries.
+* `libs`: builds libs only.
+* `tests`: builds all tests.
+* `<target-name>`: builds the provided target (one of the names defined in either `binaries`, `libs`, `slibs`, `dlibs`, or `tests`).
+* `clean`: deletes all files produced by the build (except dependency files).
+* `distclean`: deletes all files produced by the build (including dependency files).
