@@ -47,8 +47,8 @@ programA.sources:=src/programA/main.cpp
 ```
 And define the compiler and required flags:
 ```make
-CXX:=g++
-CXXFLAGS:=-Wall -std=c++17
+cxx:=g++
+cxxflags:=-Wall -std=c++17
 ```
 With this you're pretty much good to go.
 
@@ -56,8 +56,8 @@ If you're using Merged Test Placement for unit tests and auto-generated main wit
 ```make
 programA.tests=unit
 programA.unit.sources=$(call gettestsources,programA,$(srcdir))
-tests.LDLIBS=$(lDLIBS) $(shell pkg-config --libs gtest_main)
-tests.CXXFLAGS=$(CXXFLAGS) $(shell pkg-config --cflags gtest_main)
+tests.ldlibs=$(ldlibs) $(shell pkg-config --libs gtest_main)
+tests.cxxflags=$(cxxflags) $(shell pkg-config --cflags gtest_main)
 ```
 
 For more detailed information, check the Makefile itself and the `examples` folder.
