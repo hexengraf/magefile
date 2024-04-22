@@ -7,9 +7,9 @@ MyLibA.sources:=$(filter-out %.test.cpp,$(MyLibA.sources))
 # define one test binary for each module of the library
 MyLibA.tests:=unitA unitE unitI
 # use built-in function to list all *.test.cpp files inside each module for MyLibA
-MyLibA.unitA.sources=$(call gettestsources,MyLibA,src/libA/moduleA)
-MyLibA.unitE.sources=$(call gettestsources,MyLibA,src/libA/moduleE)
-MyLibA.unitI.sources=$(call gettestsources,MyLibA,src/libA/moduleI)
+MyLibA.unitA.sources=$(call .gettestsources,MyLibA,src/libA/moduleA)
+MyLibA.unitE.sources=$(call .gettestsources,MyLibA,src/libA/moduleE)
+MyLibA.unitI.sources=$(call .gettestsources,MyLibA,src/libA/moduleI)
 
 # use GCC to compile
 cxx:=g++

@@ -5,7 +5,7 @@ MyProgA.sources:=src/progA/main.cpp
 # define the binary for unit tests
 MyProgA.tests:=unit
 # use built-in function to list all *.test.cpp files inside src/ for MyProgA
-MyProgA.unit.sources=$(call gettestsources,MyProgA,src)
+MyProgA.unit.sources=$(call .gettestsources,MyProgA,src)
 
 # use GCC to compile
 cxx:=g++

@@ -90,12 +90,12 @@ arflags?=
 # libs.cxxflags=$(cxxflags) -DSOMELIBFLAG
 
 ## To export '*.sources' variables to .mk files inside the root dir, define:
-# exportsources:=1
+# .exportsources:=1
 ## This is useful in projects where parallel compilation is limited by the discovery phase.
 
 ## The discovery phase and the compilation phase can be merged together by defining:
-# mergephases:=1
-## When 'exportsources' is not used, better parallelism might be achieved without 'mergephases',
+# .mergephases:=1
+## When '.exportsources' is not used, better parallelism might be achieved without '.mergephases',
 ## since only the discovery phase will be limited.
 
 ####################################################################################################
@@ -115,7 +115,7 @@ cpp?=cpp
 hpp?=hpp
 ######################################## Control Variables #########################################
 ## Comment out this variable to print all recipes that are being executed:
-silent?=@
+.silent?=@
 ## Built-in variables and rules are disabled to provide a cleaner and more consistent behavior
 MAKEFLAGS+=--no-builtin-rules --no-builtin-variables
 ## Bash is required for some of the rules
@@ -123,122 +123,122 @@ SHELL:=bash
 ## Some useful bash flags
 .SHELLFLAGS:=-eu -o pipefail -c
 ############################################ Utilities #############################################
-gettestsources=$(wildcard $(addsuffix .test.$(cpp),$(filter $(2)/%,$($(1).stems))))
+.gettestsources=$(wildcard $(addsuffix .test.$(cpp),$(filter $(2)/%,$($(1).stems))))
 ############################################ Mode Setup ############################################
-m.mutablevars:=cxx cxxflags ldflags ldlibs ar arflags
+.mutablevars:=cxx cxxflags ldflags ldlibs ar arflags
 ifdef mode
-$(foreach v,$(m.mutablevars),$(if $($(mode).$(v)),$(eval $(v):=$($(mode).$(v)))))
+$(foreach v,$(.mutablevars),$(if $($(mode).$(v)),$(eval $(v):=$($(mode).$(v)))))
 outdir:=$(outdir)/$(mode)
 endif
 ############################################ Variables #############################################
-m.mdir:=$(outdir)/.mg
-m.objdir:=$(outdir)/objects
-m.include:=-I$(incdir) -I$(srcdir)
-m.alllibs:=$(libs) $(slibs) $(dlibs)
-m.defaults:=$(binaries) $(m.alllibs)
-m.subtests:=$(foreach t,$(m.defaults),$(addprefix $(t).,$($(t).tests)))
-m.alltests:=$(tests) $(m.subtests)
-m.targets:=$(subst tests,$(m.alltests),$(subst libs,$(m.alllibs),$(MAKECMDGOALS)))
-m.targets:=$(filter $(m.defaults) $(m.alltests),$(or $(filter-out all,$(m.targets)),$(m.defaults)))
-m.binaries:=$(filter $(binaries),$(m.targets))
-m.slibs:=$(filter $(slibs) $(libs),$(m.targets))
-m.dlibs:=$(filter $(dlibs) $(libs),$(m.targets))
-m.trackers:=$(m.targets:%=$(m.mdir)/%.mk)
+.mdir:=$(outdir)/.mg
+.objdir:=$(outdir)/objects
+.include:=-I$(incdir) -I$(srcdir)
+.alllibs:=$(libs) $(slibs) $(dlibs)
+.defaults:=$(binaries) $(.alllibs)
+.subtests:=$(foreach t,$(.defaults),$(addprefix $(t).,$($(t).tests)))
+.alltests:=$(tests) $(.subtests)
+.targets:=$(subst tests,$(.alltests),$(subst libs,$(.alllibs),$(MAKECMDGOALS)))
+.targets:=$(filter $(.defaults) $(.alltests),$(or $(filter-out all,$(.targets)),$(.defaults)))
+.binaries:=$(filter $(binaries),$(.targets))
+.slibs:=$(filter $(slibs) $(libs),$(.targets))
+.dlibs:=$(filter $(dlibs) $(libs),$(.targets))
+.trackers:=$(.targets:%=$(.mdir)/%.mk)
 ########################################### Tests Setup ############################################
-m.tests:=$(filter $(tests),$(m.targets))
-m.subtests:=$(filter $(m.subtests),$(m.targets))
-ifneq ($(m.subtests),)
-define m.setupsubtests=
-ifeq ($(wildcard $(m.mdir)/$(2).mk),)
-m.trackers:=$$(filter-out $(m.mdir)/$(2).$(1).mk,$$(m.trackers))
+.tests:=$(filter $(tests),$(.targets))
+.subtests:=$(filter $(.subtests),$(.targets))
+ifneq ($(.subtests),)
+define .setupsubtests=
+ifeq ($(wildcard $(.mdir)/$(2).mk),)
+.trackers:=$$(filter-out $(.mdir)/$(2).$(1).mk,$$(.trackers))
 endif
-m.trackers:=$(m.mdir)/$(2).mk $$(filter-out $(m.mdir)/$(2).mk,$$(m.trackers))
-m.targets:=$(2) $$(filter-out $(2),$$(m.targets))
+.trackers:=$(.mdir)/$(2).mk $$(filter-out $(.mdir)/$(2).mk,$$(.trackers))
+.targets:=$(2) $$(filter-out $(2),$$(.targets))
 endef
-$(foreach t,$(m.defaults),$(foreach s,$($(t).tests),$(eval $(call m.setupsubtests,$(s),$(t)))))
+$(foreach t,$(.defaults),$(foreach s,$($(t).tests),$(eval $(call .setupsubtests,$(s),$(t)))))
 endif
-$(foreach v,$(m.mutablevars),$(if $(tests.$(v)),$(foreach t,$(m.tests) $(m.subtests),\
+$(foreach v,$(.mutablevars),$(if $(tests.$(v)),$(foreach t,$(.tests) $(.subtests),\
 $(if $($(t).$(v)),,$(eval $(t).$(v):=$(tests.$(v)))))))
 ######################################### Target to Output #########################################
-$(foreach b,$(m.binaries),$(eval $(b).out:=$(outdir)/$(bindir)/$(b)))
-$(foreach t,$(m.tests) $(m.subtests),$(eval $(t).out:=$(outdir)/$(testdir)/$(t)))
-$(foreach l,$(m.slibs),$(eval $(l).out:=$(outdir)/$(libdir)/lib$(l).a))
-$(foreach l,$(m.dlibs),$(eval $(l).out:=$(outdir)/$(libdir)/lib$(l).so $($(l).out)))
+$(foreach b,$(.binaries),$(eval $(b).out:=$(outdir)/$(bindir)/$(b)))
+$(foreach t,$(.tests) $(.subtests),$(eval $(t).out:=$(outdir)/$(testdir)/$(t)))
+$(foreach l,$(.slibs),$(eval $(l).out:=$(outdir)/$(libdir)/lib$(l).a))
+$(foreach l,$(.dlibs),$(eval $(l).out:=$(outdir)/$(libdir)/lib$(l).so $($(l).out)))
 ###################################### Commands & Extensions #######################################
-m.cxx:=$(cxx) $(cxxflags) $(m.include)
-define m.stemgrep=
+.cxx:=$(cxx) $(cxxflags) $(.include)
+define .stemgrep=
 grep -Eohw "($(srcdir)|$(incdir)|$(testdir))/[^ ]*.$(hpp)" $(1) | sort -u \
 | sed -r -e "s:.$(hpp)::g" -e "s:$(incdir):$(srcdir):g"
 endef
-define m.setlocalvar=
+define .setlocalvar=
 $(3): $(1):=$($(2).$(1))
 
 endef
-define m.expandtracker=
+define .expandtracker=
 $(1).sources:=$$($(1).sources) $$(wildcard $$(addsuffix .$(cpp),$$($(1).stems)))
 $(1).sources+=$$(filter-out %.test.$(cpp),$$(wildcard $$(addsuffix .*.$(cpp),$$($(1).stems))))
 $(1).sources:=$$(sort $$($(1).sources))
-$(1).objects:=$$($(1).sources:%.$(cpp)=$(m.objdir)/%.o)
-$(1).deplist:=$$($(1).sources:%.$(cpp)=$(m.mdir)/%.d)
+$(1).objects:=$$($(1).sources:%.$(cpp)=$(.objdir)/%.o)
+$(1).deplist:=$$($(1).sources:%.$(cpp)=$(.mdir)/%.d)
 $(1).markers:=$$($(1).deplist:d=$(1))
-$$($(1).markers): $(m.mdir)/%.$(1): $(m.mdir)/%.d
+$$($(1).markers): $(.mdir)/%.$(1): $(.mdir)/%.d
 	$$(file >$$@,)
-$(foreach v,$(m.mutablevars),$(if $($(1).$(v)),$(call m.setlocalvar,$(v),$(1),$(2) $($(1).out))))
+$(foreach v,$(.mutablevars),$(if $($(1).$(v)),$(call .setlocalvar,$(v),$(1),$(2) $($(1).out))))
 endef
-define m.binrecipe=
+define .binrecipe=
 mkdir -p $(@D)
-$(m.cxx) $(ldflags) $(ldlibs) @$(m.mdir)/$*.in -o $@
-$(info [ bin ] $@) $(file >$(m.mdir)/$*.in,$^)
+$(.cxx) $(ldflags) $(ldlibs) @$(.mdir)/$*.in -o $@
+$(info [ bin ] $@) $(file >$(.mdir)/$*.in,$^)
 endef
 ############################################## Rules ###############################################
 .ONESHELL:
 .DELETE_ON_ERROR:
 .SECONDEXPANSION:
-.PHONY: all libs tests clean distclean $(m.defaults) $(m.alltests) $(modes)
+.PHONY: all libs tests clean distclean $(.defaults) $(.alltests) $(modes)
 
-all: $(m.defaults)
-libs: $(m.alllibs)
-tests: $(m.alltests)
-$(m.targets): %: $$($$*.out)
+all: $(.defaults)
+libs: $(.alllibs)
+tests: $(.alltests)
+$(.targets): %: $$($$*.out)
 
 $(outdir)/$(bindir)/%: $$($$*.objects)
-	$(silent)$(m.binrecipe) $(if $(exportsources),$(file >$*.mk,$*.sources:=$($*.sources)))
+	$(.silent)$(.binrecipe) $(if $(.exportsources),$(file >$*.mk,$*.sources:=$($*.sources)))
 
 $(outdir)/$(testdir)/%: $$($$*.objects)
-	$(silent)$(m.binrecipe)
+	$(.silent)$(.binrecipe)
 
 $(outdir)/$(libdir)/lib%.so: $$($$*.objects)
-	$(silent)mkdir -p $(@D)
-	$(m.cxx) -shared $(ldflags) $(ldlibs) @$(m.mdir)/$*.in -o $@
-	$(info [ lib ] $@) $(file >$(m.mdir)/$*.in,$^)
+	$(.silent)mkdir -p $(@D)
+	$(.cxx) -shared $(ldflags) $(ldlibs) @$(.mdir)/$*.in -o $@
+	$(info [ lib ] $@) $(file >$(.mdir)/$*.in,$^)
 
 $(outdir)/$(libdir)/lib%.a: $$($$*.objects)
-	$(silent)mkdir -p $(@D)
+	$(.silent)mkdir -p $(@D)
 	$(ar) rc $(arflags) $@ $?
 	$(info [ lib ] $@)
 
-$(m.objdir)/%.o: %.$(cpp)
-	$(silent)mkdir -p $(@D)
-	$(m.cxx) -c $< -o $@
+$(.objdir)/%.o: %.$(cpp)
+	$(.silent)mkdir -p $(@D)
+	$(.cxx) -c $< -o $@
 	$(info [ obj ] $< -> .o)
 
-$(m.mdir)/%.d: %.$(cpp)
-ifdef mergephases
-	$(silent)mkdir -p {$(m.objdir),$(m.mdir)}/$(dir $*)
-	$(m.cxx) -c $< -o $(m.objdir)/$*.o -MMD -MT "$(m.objdir)/$*.o $@" -MF $@
+$(.mdir)/%.d: %.$(cpp)
+ifdef .mergephases
+	$(.silent)mkdir -p {$(.objdir),$(.mdir)}/$(dir $*)
+	$(.cxx) -c $< -o $(.objdir)/$*.o -MMD -MT "$(.objdir)/$*.o $@" -MF $@
 	$(info [ obj ] $< -> .o .d)
 else
-	$(silent)mkdir -p $(@D)
-	$(m.cxx) $< -MM -MT "$(m.objdir)/$*.o $@" -MF $@
+	$(.silent)mkdir -p $(@D)
+	$(.cxx) $< -MM -MT "$(.objdir)/$*.o $@" -MF $@
 	$(info [ dep ] $< -> .d)
 endif
 
-$(m.trackers): $(m.mdir)/%.mk: $$($$*.markers)
-	$(silent)mkdir -p $(@D)
+$(.trackers): $(.mdir)/%.mk: $$($$*.markers)
+	$(.silent)mkdir -p $(@D)
 	$(if $($*.ready),\
-	$(call m.stemgrep,$(^:$*=d)) > $(m.mdir)/$*.txt,\
-	$(call m.stemgrep,$(?:$*=d)) >> $(m.mdir)/$*.txt; sort -u -o $(m.mdir)/$*.txt $(m.mdir)/$*.txt)
-	mapfile -t stems < $(m.mdir)/$*.txt
+	$(call .stemgrep,$(^:$*=d)) > $(.mdir)/$*.txt,\
+	$(call .stemgrep,$(?:$*=d)) >> $(.mdir)/$*.txt; sort -u -o $(.mdir)/$*.txt $(.mdir)/$*.txt)
+	mapfile -t stems < $(.mdir)/$*.txt
 	count=$${#stems[@]}
 	echo "$*.stems:=$${stems[@]}" > $@
 	echo "$*.count:=$${count}" >> $@
@@ -246,18 +246,18 @@ $(m.trackers): $(m.mdir)/%.mk: $$($$*.markers)
 	$(info [track] $@)
 
 clean:
-	$(silent)rm -rf $(outdir)/{$(srcdir),$(bindir)}
+	$(.silent)rm -rf $(outdir)/{$(srcdir),$(bindir)}
 	$(info [ del ] $(outdir)/$(srcdir) $(outdir)/$(bindir))
 
 distclean:
-	$(silent)rm -rf $(outdir)
+	$(.silent)rm -rf $(outdir)
 	$(info [ del ] $(outdir))
 
--include $(m.trackers)
+-include $(.trackers)
 
-ifdef exportsources
--include $(foreach t,$(m.targets),$(if $($(t).count),,$(t).mk))
+ifdef .exportsources
+-include $(foreach t,$(.targets),$(if $($(t).count),,$(t).mk))
 endif
 
-$(eval $(foreach t,$(m.targets),$(call m.expandtracker,$(t),$(m.mdir)/$(t).mk)))
--include $(foreach t,$(m.targets),$(if $($(t).ready),$($(t).deplist)))
+$(eval $(foreach t,$(.targets),$(call .expandtracker,$(t),$(.mdir)/$(t).mk)))
+-include $(foreach t,$(.targets),$(if $($(t).ready),$($(t).deplist)))

@@ -55,7 +55,7 @@ With this you're pretty much good to go.
 If you're using Merged Test Placement for unit tests and auto-generated main with `gtest_main`, a very easy way to setup it is as follows:
 ```make
 programA.tests=unit
-programA.unit.sources=$(call gettestsources,programA,$(srcdir))
+programA.unit.sources=$(call .gettestsources,programA,$(srcdir))
 tests.ldlibs=$(ldlibs) $(shell pkg-config --libs gtest_main)
 tests.cxxflags=$(cxxflags) $(shell pkg-config --cflags gtest_main)
 ```
