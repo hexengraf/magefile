@@ -64,6 +64,7 @@ For more detailed information, check the Makefile itself and the `examples` fold
 
 Magefile provides the following goals:
 * `all`: default goal, builds all binaries and libraries.
+* `binaries`: builds binaries only.
 * `libs`: builds libs only.
 * `tests`: builds all tests.
 * `<target-name>`: builds the provided target (one of the names defined in either `binaries`, `libs`, `slibs`, `dlibs`, or `tests`).

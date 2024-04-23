@@ -135,8 +135,8 @@ endif
 .objdir:=$(outdir)/objects
 .all:=$(binaries) $(libs) $(slibs) $(dlibs)
 tests+=$(foreach t,$(.all),$(addprefix $t.,$($t.tests)))
-.targets:=$(filter $(.all) $(tests) all libs tests,$(or $(MAKECMDGOALS),all))
-.targets:=$(subst tests,$(tests),$(.targets))
+.targets:=$(filter $(.all) $(tests) all binaries libs tests,$(or $(MAKECMDGOALS),all))
+.targets:=$(subst binaries,$(binaries),$(subst tests,$(tests),$(.targets)))
 .targets:=$(subst all,$(.all),$(subst libs,$(libs) $(slibs) $(dlibs),$(.targets)))
 .binaries:=$(filter $(binaries),$(.targets))
 .slibs:=$(filter $(slibs) $(libs),$(.targets))
@@ -180,9 +180,10 @@ endef
 .ONESHELL:
 .DELETE_ON_ERROR:
 .SECONDEXPANSION:
-.PHONY: all libs tests clean distclean $(.all) $(tests)
+.PHONY: all binaries libs tests clean distclean $(.all) $(tests)
 
 all: $(.all)
+binaries: $(binaries)
 libs: $(libs) $(slibs) $(dlibs)
 tests: $(tests)
 $(binaries): %: $(outdir)/$(bindir)/%
